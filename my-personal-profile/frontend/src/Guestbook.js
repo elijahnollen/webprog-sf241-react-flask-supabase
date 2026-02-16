@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react';
+import ReactDOM from 'react-dom/client'; 
 import axios from 'axios';
 
-// Replace this with your actual Render URL
-const API_URL = process.env.REACT_APP_API_URL || "http://127.0.0.1:5000/guestbook";
+const API_URL = import.meta.env.VITE_API_URL || "http://127.0.0.1:5000/guestbook";
 
 const Guestbook = () => {
   const [entries, setEntries] = useState([]);
@@ -11,7 +11,6 @@ const Guestbook = () => {
   const [error, setError] = useState(null);
   const [editingId, setEditingId] = useState(null);
 
-  // 1. GET: Fetch all entries
   const fetchEntries = async () => {
     try {
       setLoading(true);
@@ -30,12 +29,10 @@ const Guestbook = () => {
     fetchEntries();
   }, []);
 
-  // 2. POST: Add a new entry
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
       if (editingId) {
-        // 3. PUT: Update existing entry
         await axios.put(`${API_URL}/${editingId}`, formData);
         setEditingId(null);
       } else {
@@ -48,7 +45,6 @@ const Guestbook = () => {
     }
   };
 
-  // 4. DELETE: Remove an entry
   const handleDelete = async (id) => {
     if (window.confirm("Are you sure?")) {
       try {
@@ -66,10 +62,9 @@ const Guestbook = () => {
   };
 
   return (
-    <div style={{ maxWidth: '600px', margin: '0 auto', padding: '20px' }}>
+    <div style={{ maxWidth: '600px', margin: '0 auto', padding: '20px', fontFamily: 'sans-serif' }}>
       <h2>Guestbook</h2>
       
-      {/* Form Section */}
       <form onSubmit={handleSubmit} style={{ marginBottom: '30px' }}>
         <input 
           type="text" 
@@ -77,39 +72,41 @@ const Guestbook = () => {
           value={formData.name}
           onChange={(e) => setFormData({...formData, name: e.target.value})}
           required
-          style={{ display: 'block', width: '100%', marginBottom: '10px' }}
+          style={{ display: 'block', width: '100%', marginBottom: '10px', padding: '8px' }}
         />
         <textarea 
           placeholder="Leave a message..." 
           value={formData.message}
           onChange={(e) => setFormData({...formData, message: e.target.value})}
           required
-          style={{ display: 'block', width: '100%', marginBottom: '10px' }}
+          style={{ display: 'block', width: '100%', marginBottom: '10px', padding: '8px', minHeight: '80px' }}
         />
-        <button type="submit">
+        <button type="submit" style={{ cursor: 'pointer', padding: '8px 16px' }}>
           {editingId ? "Update Entry" : "Sign Guestbook"}
         </button>
-        {editingId && <button onClick={() => setEditingId(null)}>Cancel</button>}
+        {editingId && (
+          <button onClick={() => setEditingId(null)} style={{ marginLeft: '10px' }}>
+            Cancel
+          </button>
+        )}
       </form>
 
       <hr />
 
-      {/* Logic to handle Render's "Cold Start" */}
       {loading ? (
-        <div className="loader">
+        <div style={{ textAlign: 'center', padding: '20px' }}>
           <p>☕ Waking up the server... This may take 30 seconds on the first load.</p>
-          {/* You can add a CSS spinner here */}
         </div>
       ) : error ? (
         <p style={{ color: 'orange' }}>{error}</p>
       ) : (
-        <div className="entries">
+        <div>
           {entries.length === 0 && <p>No entries yet. Be the first!</p>}
           {entries.map((entry) => (
-            <div key={entry.id} style={{ borderBottom: '1px solid #ddd', padding: '10px 0' }}>
+            <div key={entry.id} style={{ borderBottom: '1px solid #ddd', padding: '15px 0' }}>
               <strong>{entry.name}</strong>
               <p>{entry.message}</p>
-              <button onClick={() => startEdit(entry)}>Edit</button>
+              <button onClick={() => startEdit(entry)} style={{ marginRight: '10px' }}>Edit</button>
               <button onClick={() => handleDelete(entry.id)} style={{ color: 'red' }}>Delete</button>
             </div>
           ))}
@@ -118,5 +115,14 @@ const Guestbook = () => {
     </div>
   );
 };
+
+const rootElement = document.getElementById('root');
+if (rootElement) {
+  ReactDOM.createRoot(rootElement).render(
+    <React.StrictMode>
+      <Guestbook />
+    </React.StrictMode>
+  );
+}
 
 export default Guestbook;
